@@ -34,12 +34,16 @@ jobs:
 
   codeql:
     runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      contents: read
+    needs: build
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: artifacts
 
       - name: Set up Java
         uses: actions/setup-java@v5
