@@ -22,6 +22,10 @@ public class User {
         return this.todoLists.add(todoList);
     }
 
+    public boolean removeTodoList(TodoList todoList) {
+        return this.todoLists.remove(todoList);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof User user)) return false;
@@ -31,5 +35,14 @@ public class User {
     @Override
     public int hashCode() {
         return Objects.hash(id, username);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username=" + username +
+                ", todoLists=" + todoLists +
+                '}';
     }
 }
