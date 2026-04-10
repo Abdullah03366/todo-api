@@ -27,10 +27,11 @@ jobs:
         run: mvn -B package
 
       - name: Upload Build Artifact (JAR)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-jar
           path: target/*.jar
+
   codeql:
     runs-on: ubuntu-latest
     permissions:
