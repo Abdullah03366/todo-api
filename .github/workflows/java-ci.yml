@@ -23,6 +23,14 @@ jobs:
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots verify "-Dspring.profiles.active=ci"
 
+      - name: Package JAR
+        run: mvn -B package
+
+      - name: Upload Build Artifact (JAR)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-jar
+          path: target/*.jar
   codeql:
     runs-on: ubuntu-latest
     permissions:
