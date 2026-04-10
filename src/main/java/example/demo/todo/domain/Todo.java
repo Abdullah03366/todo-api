@@ -4,25 +4,44 @@ import example.demo.todo.domain.exceptions.InvalidDescriptionException;
 import example.demo.todo.domain.exceptions.InvalidTitleException;
 import example.demo.todo.domain.todolist.Title;
 import example.demo.todo.domain.todolist.Description;
+import jakarta.persistence.*;
 
 import java.util.Date;
 import java.util.UUID;
 
+@Entity
+@Table(name = "todos")
 public class Todo {
+    @Id
     private UUID id;
-    private Title title;
-    private Description description;
-    private boolean is_completed;
-    private Date created_at;
-    private Enum<Priority> priority;
 
+    @Embedded
+    @Column(nullable = false, length = 100)
+    private Title title;
+
+    @Embedded
+    @Column(nullable = false, length = 250)
+    private Description description;
+
+    @Column(nullable = false)
+    private boolean completed;
+
+    @Column(nullable = false, updatable = false)
+    private Date createdAt;
+
+    @Column(nullable = false)
+    private String priority;
+
+    protected Todo() {
+        // nodig voor JPA
+    }
     public Todo(String title, String description, Priority priority) throws InvalidTitleException, InvalidDescriptionException {
         this.id = UUID.randomUUID();
         this.title = new Title(title);
         this.description = new Description(description);
-        this.is_completed = false;
-        this.created_at = new Date();
-        this.priority = priority;
+        this.completed = false;
+        this.createdAt = new Date();
+        this.priority = priority.toString();
     }
 
     public UUID getId() {
@@ -37,15 +56,15 @@ public class Todo {
         return description;
     }
 
-    public boolean isIs_completed() {
-        return is_completed;
+    public boolean getCompleted() {
+        return completed;
     }
 
     public Date getCreated_at() {
-        return created_at;
+        return createdAt;
     }
 
-    public Enum<Priority> getPriority() {
+    public String getPriority() {
         return priority;
     }
 
@@ -57,12 +76,12 @@ public class Todo {
         this.description = description;
     }
 
-    public void setIs_completed(boolean is_completed) {
-        this.is_completed = is_completed;
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
     }
 
     public void setPriority(Enum<Priority> priority) {
-        this.priority = priority;
+        this.priority = priority.toString();
     }
 
     @Override
@@ -71,8 +90,8 @@ public class Todo {
                 "id=" + id +
                 ", title=" + title +
                 ", description=" + description +
-                ", is_completed=" + is_completed +
-                ", created_at=" + created_at +
+                ", completed=" + completed +
+                ", createdAt=" + createdAt +
                 ", priority=" + priority +
                 '}';
     }

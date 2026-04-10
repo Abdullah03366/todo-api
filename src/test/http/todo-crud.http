@@ -1,0 +1,65 @@
+### Base config
+@host = http://localhost:8080
+@basePath = /api/todos
+
+### 1) Health check-ish: haal alle todos op
+GET {{host}}{{basePath}}
+Accept: application/json
+
+###
+
+### 2) CREATE todo
+# @name createTodo
+POST {{host}}{{basePath}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Boodschappen doen",
+  "description": "Melk en brood halen",
+  "priority": "HIGH"
+}
+
+> {%
+    const body = response.body;
+    if (body && body.id) {
+        client.global.set("todoId", body.id);
+    }
+%}
+
+###
+
+### 3) READ by id (gebruikt id van create)
+GET {{host}}{{basePath}}/{{todoId}}
+Accept: application/json
+
+###
+
+### 4) UPDATE todo
+PUT {{host}}{{basePath}}/{{todoId}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Boodschappen doen (updated)",
+  "description": "Melk, brood en eieren halen",
+  "priority": "MEDIUM",
+  "completed": true
+}
+
+###
+
+### 5) READ all na update
+GET {{host}}{{basePath}}
+Accept: application/json
+
+###
+
+### 6) DELETE todo
+DELETE {{host}}{{basePath}}/{{todoId}}
+
+###
+
+### 7) Controle: verwacht 404 op deleted id
+GET {{host}}{{basePath}}/{{todoId}}
+Accept: application/json
