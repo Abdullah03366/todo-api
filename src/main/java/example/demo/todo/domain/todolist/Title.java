@@ -14,4 +14,8 @@ public class Title {
             throw new InvalidTitleException();
         }
     }
+
+    public String getTitle() {
+        return title;
+    }
 }

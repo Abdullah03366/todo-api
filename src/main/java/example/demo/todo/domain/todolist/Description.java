@@ -7,11 +7,15 @@ import java.util.Objects;
 public class Description {
     private String description;
 
-    public Description(String title) throws InvalidDescriptionException {
-        if (title.length() <= 250 && !title.isBlank()) {
+    public Description(String description) throws InvalidDescriptionException {
+        if (description.length() <= 250 && !description.isBlank()) {
             this.description = Objects.requireNonNull(description, "description must not be null");
         } else {
             throw new InvalidDescriptionException();
         }
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

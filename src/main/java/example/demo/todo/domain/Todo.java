@@ -25,6 +25,30 @@ public class Todo {
         this.priority = priority;
     }
 
+    public UUID getId() {
+        return id;
+    }
+
+    public Title getTitle() {
+        return title;
+    }
+
+    public Description getDescription() {
+        return description;
+    }
+
+    public boolean isIs_completed() {
+        return is_completed;
+    }
+
+    public Date getCreated_at() {
+        return created_at;
+    }
+
+    public Enum<Priority> getPriority() {
+        return priority;
+    }
+
     public void setTitle(Title title) {
         this.title = title;
     }
