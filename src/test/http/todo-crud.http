@@ -36,7 +36,7 @@ Accept: application/json
 ###
 
 ### 4) UPDATE todo
-PUT {{host}}{{basePath}}/{{todoId}}
+PATCH {{host}}{{basePath}}/{{todoId}}
 Content-Type: application/json
 Accept: application/json
 

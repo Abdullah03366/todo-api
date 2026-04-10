@@ -40,20 +40,20 @@ De API volgt de REST-principes waarbij bronnen hiërarchisch worden benaderd.
 | `GET` | `/users/{id}` | Haal profielgegevens van een gebruiker op |
 
 ### Lijsten (Lists)
-| Methode | Endpoint | Beschrijving |
-| :--- | :--- | :--- |
-| `GET` | `/users/{userId}/lists` | Haal alle lijsten van een specifieke gebruiker op |
-| `POST` | `/users/{userId}/lists` | Maak een nieuwe lijst aan voor een gebruiker |
-| `PUT` | `/lists/{listId}` | Wijzig de titel of beschrijving van een lijst |
+| Methode  | Endpoint | Beschrijving |
+|:---------| :--- | :--- |
+| `GET`    | `/users/{userId}/lists` | Haal alle lijsten van een specifieke gebruiker op |
+| `POST`   | `/users/{userId}/lists` | Maak een nieuwe lijst aan voor een gebruiker |
+| `PATCH` | `/lists/{listId}` | Wijzig de titel of beschrijving van een lijst |
 | `DELETE` | `/lists/{listId}` | Verwijder een lijst (en alle bijbehorende taken) |
 
 ### Taken (Todos)
-| Methode | Endpoint | Beschrijving |
-| :--- | :--- | :--- |
-| `GET` | `/lists/{listId}/todos` | Haal alle taken binnen een specifieke lijst op |
-| `POST` | `/lists/{listId}/todos` | Voeg een nieuwe taak toe aan een lijst |
-| `GET` | `/todos/{todoId}` | Haal de details van één specifieke taak op |
-| `PUT` | `/todos/{todoId}` | Update een taak (status, deadline, prioriteit, etc.) |
+| Methode  | Endpoint | Beschrijving |
+|:---------| :--- | :--- |
+| `GET`    | `/lists/{listId}/todos` | Haal alle taken binnen een specifieke lijst op |
+| `POST`   | `/lists/{listId}/todos` | Voeg een nieuwe taak toe aan een lijst |
+| `GET`    | `/todos/{todoId}` | Haal de details van één specifieke taak op |
+| `PATCH` | `/todos/{todoId}` | Update een taak (status, deadline, prioriteit, etc.) |
 | `DELETE` | `/todos/{todoId}` | Verwijder een taak |
 
 ---

@@ -39,7 +39,7 @@ public class TodoController {
         return todoService.create(request.title(), request.description(), request.priority());
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public Todo update(@PathVariable UUID id, @RequestBody UpdateTodoDTO request)
             throws InvalidTitleException, InvalidDescriptionException {
         return todoService.update(id, request.title(), request.description(), request.priority(), request.completed());
