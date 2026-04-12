@@ -33,6 +33,11 @@ public class UserController {
         return DTOMapper.toUserDTO(userService.findById(id));
     }
 
+    @GetMapping("/login")
+    public UserDTO getByUsername(@RequestParam String username) {
+        return DTOMapper.toUserDTO(userService.findByUsername(username));
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDTO create(@RequestBody CreateUserDTO request) throws InvalidUsernameException {

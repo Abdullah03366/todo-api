@@ -49,6 +49,18 @@ class UserControllerTest {
     }
 
     @Test
+    void getByUsernameMapsUserToDto() throws Exception {
+        User user = new User("abdullah");
+        when(userService.findByUsername("abdullah")).thenReturn(user);
+
+        UserDTO result = userController.getByUsername("abdullah");
+
+        assertEquals(user.getId(), result.id());
+        assertEquals("abdullah", result.username());
+        verify(userService).findByUsername("abdullah");
+    }
+
+    @Test
     void createDelegatesToServiceAndMapsResponse() throws Exception {
         User user = new User("abdullah");
         UserController.CreateUserDTO request = new UserController.CreateUserDTO("abdullah");
@@ -96,4 +108,3 @@ class UserControllerTest {
         assertEquals("Username should be shorter than 50 characters", result);
     }
 }
-

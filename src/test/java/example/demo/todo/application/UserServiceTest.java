@@ -59,6 +59,26 @@ class UserServiceTest {
     }
 
     @Test
+    void findByUsernameReturnsUserWhenPresent() throws Exception {
+        User user = new User("abdullah");
+        when(userRepository.findByUsername("abdullah")).thenReturn(Optional.of(user));
+
+        User result = userService.findByUsername("abdullah");
+
+        assertSame(user, result);
+        verify(userRepository).findByUsername("abdullah");
+    }
+
+    @Test
+    void findByUsernameThrowsWhenMissing() {
+        when(userRepository.findByUsername("missing")).thenReturn(Optional.empty());
+
+        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> userService.findByUsername("missing"));
+
+        assertEquals("User not found: missing", ex.getMessage());
+    }
+
+    @Test
     void createBuildsAndSavesUser() throws InvalidUsernameException {
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -102,4 +122,3 @@ class UserServiceTest {
         verify(userRepository, never()).deleteById(any(UUID.class));
     }
 }
-

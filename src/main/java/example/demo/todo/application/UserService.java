@@ -28,6 +28,11 @@ public class UserService {
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + id));
     }
 
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+    }
+
     public User create(String username) throws InvalidUsernameException {
         User user = new User(username);
         return userRepository.save(user);
