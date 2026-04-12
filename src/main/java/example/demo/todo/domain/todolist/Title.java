@@ -9,7 +9,9 @@ import java.util.Objects;
 public class Title {
     private String title;
 
-    public Title() {}
+    protected Title() {
+        // nodige voor JPA
+    }
 
     public Title(String title) throws InvalidTitleException {
         if (title.length() <= 100 && !title.isBlank()) {

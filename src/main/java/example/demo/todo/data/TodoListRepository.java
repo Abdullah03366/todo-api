@@ -1,14 +1,14 @@
 package example.demo.todo.data;
 
-import example.demo.todo.domain.Todo;
+import example.demo.todo.domain.TodoList;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.lang.NonNull;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public interface TodoRepository extends JpaRepository<Todo, UUID> {
+public interface TodoListRepository extends JpaRepository<TodoList, UUID> {
     @Override
     @NonNull
-    Optional<Todo> findById(@NonNull UUID id);
+    Optional<TodoList> findById(@NonNull UUID id);
 }

@@ -9,7 +9,9 @@ import java.util.Objects;
 public class Description {
     private String description;
 
-    public Description() {}
+    protected Description() {
+        // nodig voor JPA
+    }
 
     public Description(String description) throws InvalidDescriptionException {
         if (description.length() <= 250 && !description.isBlank()) {

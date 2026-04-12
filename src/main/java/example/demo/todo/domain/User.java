@@ -4,13 +4,26 @@ import example.demo.todo.domain.user.Username;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Entity
+@Table(name = "users")
 public class User {
+    @Id
     private UUID id;
+
+    @Embedded
+    @Column(nullable = false, length = 50)
     private Username username;
-    private ArrayList<TodoList> todoLists;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TodoList> todoLists;
+
+    protected User() {
+        // nodig voor JPA
+    }
 
     public User(String username) throws InvalidUsernameException {
         this.id = UUID.randomUUID();
@@ -18,7 +31,24 @@ public class User {
         this.todoLists = new ArrayList<>();
     }
 
+    public UUID getId() {
+        return id;
+    }
+
+    public Username getUsername() {
+        return username;
+    }
+
+    public List<TodoList> getTodoLists() {
+        return todoLists;
+    }
+
+    public void setUsername(Username username) {
+        this.username = username;
+    }
+
     public boolean addTodoList(TodoList todoList) {
+        todoList.setUser(this);
         return this.todoLists.add(todoList);
     }
 

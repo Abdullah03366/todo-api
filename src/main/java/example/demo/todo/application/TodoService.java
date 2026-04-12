@@ -31,12 +31,6 @@ public class TodoService {
                 .orElseThrow(() -> new NoSuchElementException("Todo not found: " + id));
     }
 
-    public Todo create(String title, String description, Priority priority)
-            throws InvalidTitleException, InvalidDescriptionException {
-        Todo todo = new Todo(title, description, priority);
-        return todoRepository.save(todo);
-    }
-
     public Todo update(UUID id, String title, String description, Priority priority, Boolean completed) throws InvalidTitleException, InvalidDescriptionException {
         Todo todo = findById(id);
 
@@ -46,13 +40,6 @@ public class TodoService {
         if (completed != null) todo.setCompleted(completed);
 
         return todoRepository.save(todo);
-    }
-
-    public void delete(UUID id) {
-        if (!todoRepository.existsById(id)) {
-            throw new NoSuchElementException("Todo not found: " + id);
-        }
-        todoRepository.deleteById(id);
     }
 }
 

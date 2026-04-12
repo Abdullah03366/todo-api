@@ -1,65 +1,77 @@
 ### Base config
 @host = http://localhost:8080
-@basePath = /api/todos
 
-### 1) Health check-ish: haal alle todos op
-GET {{host}}{{basePath}}
-Accept: application/json
-
-###
-
-### 2) CREATE todo
-# @name createTodo
-POST {{host}}{{basePath}}
+### 1) CREATE user
+# @name createUser
+POST {{host}}/api/users
 Content-Type: application/json
 Accept: application/json
 
 {
-  "title": "Boodschappen doen",
-  "description": "Melk en brood halen",
-  "priority": "HIGH"
+  "username": "abdullah"
 }
 
 > {%
     const body = response.body;
     if (body && body.id) {
-        client.global.set("todoId", body.id);
+        client.global.set("userId", body.id);
     }
 %}
 
 ###
 
-### 3) READ by id (gebruikt id van create)
-GET {{host}}{{basePath}}/{{todoId}}
-Accept: application/json
-
-###
-
-### 4) UPDATE todo
-PATCH {{host}}{{basePath}}/{{todoId}}
+### 2) CREATE todolist (userId verplicht)
+# @name createTodoList
+POST {{host}}/api/todolists
 Content-Type: application/json
 Accept: application/json
 
 {
-  "title": "Boodschappen doen (updated)",
-  "description": "Melk, brood en eieren halen",
-  "priority": "MEDIUM",
-  "completed": true
+  "userId": "{{userId}}",
+  "title": "Werk",
+  "description": "Taken voor deze week"
+}
+
+> {%
+    const body = response.body;
+    if (body && body.id) {
+        client.global.set("todoListId", body.id);
+    }
+%}
+
+###
+
+### 3) ADD todo in lijst (maakt todo direct aan)
+POST {{host}}/api/todolists/{{todoListId}}/todos
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "API testen",
+  "description": "Swagger endpoint testen",
+  "priority": "HIGH"
 }
 
 ###
 
-### 5) READ all na update
-GET {{host}}{{basePath}}
+### 4) READ todolist met todos
+GET {{host}}/api/todolists/{{todoListId}}
 Accept: application/json
 
+> {%
+    const body = response.body;
+    if (body && body.todos && body.todos.length > 0) {
+        client.global.set("todoId", body.todos[0].id);
+    }
+%}
+
 ###
 
-### 6) DELETE todo
-DELETE {{host}}{{basePath}}/{{todoId}}
+### 5) REMOVE todo uit lijst (todo entity wordt ook verwijderd)
+DELETE {{host}}/api/todolists/{{todoListId}}/todos/{{todoId}}
 
 ###
 
-### 7) Controle: verwacht 404 op deleted id
-GET {{host}}{{basePath}}/{{todoId}}
+### 6) Controle: todo niet meer opvraagbaar
+GET {{host}}/api/todos/{{todoId}}
 Accept: application/json
