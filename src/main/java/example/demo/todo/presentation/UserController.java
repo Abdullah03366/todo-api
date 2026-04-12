@@ -1,8 +1,9 @@
 package example.demo.todo.presentation;
 
 import example.demo.todo.application.UserService;
-import example.demo.todo.domain.User;
 import example.demo.todo.domain.exceptions.InvalidUsernameException;
+import example.demo.todo.presentation.dto.DTOMapper;
+import example.demo.todo.presentation.dto.UserDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,38 +22,30 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAll() {
-        return userService.findAll();
+    public List<UserDTO> getAll() {
+        return userService.findAll().stream()
+                .map(DTOMapper::toUserDTO)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public User getById(@PathVariable UUID id) {
-        return userService.findById(id);
+    public UserDTO getById(@PathVariable UUID id) {
+        return DTOMapper.toUserDTO(userService.findById(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User create(@RequestBody CreateUserDTO request) throws InvalidUsernameException {
-        return userService.create(request.username());
+    public UserDTO create(@RequestBody CreateUserDTO request) throws InvalidUsernameException {
+        return DTOMapper.toUserDTO(userService.create(request.username()));
     }
 
     @PatchMapping("/{id}")
-    public User update(@PathVariable UUID id, @RequestBody UpdateUserDTO request) throws InvalidUsernameException {
-        return userService.update(id, request.username());
-    }
-
-    @PutMapping("/{userId}/todolists/{todoListId}")
-    public User addTodoList(@PathVariable UUID userId, @PathVariable UUID todoListId) {
-        return userService.addTodoList(userId, todoListId);
-    }
-
-    @DeleteMapping("/{userId}/todolists/{todoListId}")
-    public User removeTodoList(@PathVariable UUID userId, @PathVariable UUID todoListId) {
-        return userService.removeTodoList(userId, todoListId);
+    public UserDTO update(@PathVariable UUID id, @RequestBody UpdateUserDTO request) throws InvalidUsernameException {
+        return DTOMapper.toUserDTO(userService.update(id, request.username()));
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.FOUND)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         userService.delete(id);
     }

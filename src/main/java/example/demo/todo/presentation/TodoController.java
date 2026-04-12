@@ -2,9 +2,10 @@ package example.demo.todo.presentation;
 
 import example.demo.todo.application.TodoService;
 import example.demo.todo.domain.Priority;
-import example.demo.todo.domain.Todo;
 import example.demo.todo.domain.exceptions.InvalidDescriptionException;
 import example.demo.todo.domain.exceptions.InvalidTitleException;
+import example.demo.todo.presentation.dto.DTOMapper;
+import example.demo.todo.presentation.dto.TodoDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,19 +24,27 @@ public class TodoController {
     }
 
     @GetMapping
-    public List<Todo> getAll() {
-        return todoService.findAll();
+    public List<TodoDTO> getAll() {
+        return todoService.findAll().stream()
+                .map(DTOMapper::toTodoDTO)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Todo getById(@PathVariable UUID id) {
-        return todoService.findById(id);
+    public TodoDTO getById(@PathVariable UUID id) {
+        return DTOMapper.toTodoDTO(todoService.findById(id));
     }
 
     @PatchMapping("/{id}")
-    public Todo update(@PathVariable UUID id, @RequestBody UpdateTodoDTO request)
+    public TodoDTO update(@PathVariable UUID id, @RequestBody UpdateTodoDTO request)
             throws InvalidTitleException, InvalidDescriptionException {
-        return todoService.update(id, request.title(), request.description(), request.priority(), request.completed());
+        return DTOMapper.toTodoDTO(todoService.update(id, request.title(), request.description(), request.priority(), request.completed()));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) {
+        todoService.delete(id);
     }
 
     @ExceptionHandler(NoSuchElementException.class)

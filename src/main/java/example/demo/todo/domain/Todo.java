@@ -32,16 +32,11 @@ public class Todo {
     @Column(nullable = false)
     private String priority;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "todolist_id", nullable = false)
-    private TodoList todoList;
-
     protected Todo() {
         // nodig voor JPA
     }
-    public Todo(TodoList todoList, String title, String description, Priority priority) throws InvalidTitleException, InvalidDescriptionException {
+    public Todo(String title, String description, Priority priority) throws InvalidTitleException, InvalidDescriptionException {
         this.id = UUID.randomUUID();
-        this.todoList = todoList;
         this.title = new Title(title);
         this.description = new Description(description);
         this.completed = false;
@@ -73,10 +68,6 @@ public class Todo {
         return priority;
     }
 
-    public TodoList getTodoList() {
-        return todoList;
-    }
-
     public void setTitle(Title title) {
         this.title = title;
     }
@@ -93,9 +84,6 @@ public class Todo {
         this.priority = priority.toString();
     }
 
-    void setTodoList(TodoList todoList) {
-        this.todoList = todoList;
-    }
 
     @Override
     public String toString() {

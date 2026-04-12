@@ -2,9 +2,10 @@ package example.demo.todo.presentation;
 
 import example.demo.todo.application.TodoListService;
 import example.demo.todo.domain.Priority;
-import example.demo.todo.domain.TodoList;
 import example.demo.todo.domain.exceptions.InvalidDescriptionException;
 import example.demo.todo.domain.exceptions.InvalidTitleException;
+import example.demo.todo.presentation.dto.DTOMapper;
+import example.demo.todo.presentation.dto.TodoListDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -24,38 +25,35 @@ public class TodoListController {
     }
 
     @GetMapping
-    public List<TodoList> getAll() {
-        return todoListService.findAll();
+    public List<TodoListDTO> getAll() {
+        return todoListService.findAll().stream()
+                .map(DTOMapper::toTodoListDTO)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public TodoList getById(@PathVariable UUID id) {
-        return todoListService.findById(id);
+    public TodoListDTO getById(@PathVariable UUID id) {
+        return DTOMapper.toTodoListDTO(todoListService.findById(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TodoList create(@RequestBody @Valid CreateTodoListDTO request)
+    public TodoListDTO create(@RequestBody @Valid CreateTodoListDTO request)
             throws InvalidTitleException, InvalidDescriptionException {
-        return todoListService.create(request.userId(), request.title(), request.description());
+        return DTOMapper.toTodoListDTO(todoListService.create(request.userId(), request.title(), request.description()));
     }
 
     @PatchMapping("/{id}")
-    public TodoList update(@PathVariable UUID id, @RequestBody @Valid UpdateTodoListDTO request)
+    public TodoListDTO update(@PathVariable UUID id, @RequestBody @Valid UpdateTodoListDTO request)
             throws InvalidTitleException, InvalidDescriptionException {
-        return todoListService.update(id, request.title(), request.description());
+        return DTOMapper.toTodoListDTO(todoListService.update(id, request.title(), request.description()));
     }
 
     @PostMapping("/{todoListId}/todos")
     @ResponseStatus(HttpStatus.CREATED)
-    public TodoList addTodo(@PathVariable UUID todoListId, @RequestBody @Valid CreateTodoInListDTO request)
+    public TodoListDTO addTodo(@PathVariable UUID todoListId, @RequestBody @Valid CreateTodoInListDTO request)
             throws InvalidTitleException, InvalidDescriptionException {
-        return todoListService.addTodo(todoListId, request.title(), request.description(), request.priority());
-    }
-
-    @DeleteMapping("/{todoListId}/todos/{todoId}")
-    public TodoList removeTodo(@PathVariable UUID todoListId, @PathVariable UUID todoId) {
-        return todoListService.removeTodo(todoListId, todoId);
+        return DTOMapper.toTodoListDTO(todoListService.addTodo(todoListId, request.title(), request.description(), request.priority()));
     }
 
     @DeleteMapping("/{id}")

@@ -18,7 +18,8 @@ public class User {
     @Column(nullable = false, length = 50)
     private Username username;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id", nullable = false)
     private List<TodoList> todoLists;
 
     protected User() {
@@ -48,7 +49,6 @@ public class User {
     }
 
     public boolean addTodoList(TodoList todoList) {
-        todoList.setUser(this);
         return this.todoLists.add(todoList);
     }
 

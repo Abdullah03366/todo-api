@@ -41,5 +41,12 @@ public class TodoService {
 
         return todoRepository.save(todo);
     }
+
+    public void delete(UUID id) {
+        if (!todoRepository.existsById(id)) {
+            throw new NoSuchElementException("TodoList not found: " + id);
+        }
+        todoRepository.deleteById(id);
+    }
 }
 

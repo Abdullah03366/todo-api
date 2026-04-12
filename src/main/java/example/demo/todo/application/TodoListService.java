@@ -42,7 +42,7 @@ public class TodoListService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + userId));
 
-        TodoList todoList = new TodoList(user, title, description);
+        TodoList todoList = new TodoList(title, description);
         user.addTodoList(todoList);
         userRepository.save(user);
         return todoList;
