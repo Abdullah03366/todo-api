@@ -9,6 +9,7 @@ import example.demo.todo.domain.todolist.Description;
 import example.demo.todo.domain.todolist.Title;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -31,13 +32,14 @@ public class TodoService {
                 .orElseThrow(() -> new NoSuchElementException("Todo not found: " + id));
     }
 
-    public Todo update(UUID id, String title, String description, Priority priority, Boolean completed) throws InvalidTitleException, InvalidDescriptionException {
+    public Todo update(UUID id, String title, String description, Priority priority, Boolean completed, Date dueAt) throws InvalidTitleException, InvalidDescriptionException {
         Todo todo = findById(id);
 
         todo.setTitle(new Title(title));
         todo.setDescription(new Description(description));
         if (priority != null) todo.setPriority(priority);
         if (completed != null) todo.setCompleted(completed);
+        if (dueAt != null) todo.setDueAt(dueAt);
 
         return todoRepository.save(todo);
     }

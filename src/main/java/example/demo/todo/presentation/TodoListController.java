@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -53,7 +54,13 @@ public class TodoListController {
     @ResponseStatus(HttpStatus.CREATED)
     public TodoListDTO addTodo(@PathVariable UUID todoListId, @RequestBody @Valid CreateTodoInListDTO request)
             throws InvalidTitleException, InvalidDescriptionException {
-        return DTOMapper.toTodoListDTO(todoListService.addTodo(todoListId, request.title(), request.description(), request.priority()));
+        return DTOMapper.toTodoListDTO(todoListService.addTodo(
+                todoListId,
+                request.title(),
+                request.description(),
+                request.priority(),
+                request.dueAt()
+        ));
     }
 
     @DeleteMapping("/{id}")
@@ -75,6 +82,6 @@ public class TodoListController {
     }
 
     public record CreateTodoListDTO(UUID userId, String title, String description) {}
-    public record CreateTodoInListDTO(String title, String description, Priority priority) {}
+    public record CreateTodoInListDTO(String title, String description, Priority priority, Date dueAt) {}
     public record UpdateTodoListDTO(String title, String description) {}
 }

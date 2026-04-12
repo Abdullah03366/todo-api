@@ -13,6 +13,7 @@ import example.demo.todo.domain.todolist.Title;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -57,10 +58,10 @@ public class TodoListService {
     }
 
     @Transactional
-    public TodoList addTodo(UUID todoListId, String title, String description, Priority priority)
+    public TodoList addTodo(UUID todoListId, String title, String description, Priority priority, Date dueAt)
             throws InvalidTitleException, InvalidDescriptionException {
         TodoList todoList = findById(todoListId);
-        todoList.createAndAddTodo(title, description, priority);
+        todoList.createAndAddTodo(title, description, priority, dueAt);
 
         return todoListRepository.save(todoList);
     }

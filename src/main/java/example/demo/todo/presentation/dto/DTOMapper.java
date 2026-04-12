@@ -33,7 +33,8 @@ public class DTOMapper {
                 todo.getTitle().getTitle(),
                 todo.getDescription().getDescription(),
                 todo.getCompleted(),
-                todo.getPriority()
+                todo.getPriority(),
+                todo.getDueAt()
         );
     }
 }

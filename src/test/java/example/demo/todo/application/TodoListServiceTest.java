@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -97,21 +98,23 @@ class TodoListServiceTest {
     @Test
     void addTodoCreatesTodoInListAndSaves() throws Exception {
         TodoList todoList = new TodoList("Work", "desc");
+        Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
         UUID id = todoList.getId();
         when(todoListRepository.findById(id)).thenReturn(Optional.of(todoList));
         when(todoListRepository.save(any(TodoList.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        TodoList updated = todoListService.addTodo(id, "Task", "Task desc", Priority.HIGH);
+        TodoList updated = todoListService.addTodo(id, "Task", "Task desc", Priority.HIGH, dueAt);
 
         assertEquals(1, updated.getTodos().size());
         assertEquals("Task", updated.getTodos().getFirst().getTitle().getTitle());
+        assertEquals(dueAt, updated.getTodos().getFirst().getDueAt());
         verify(todoListRepository).save(todoList);
     }
 
     @Test
     void removeTodoRemovesLinkedTodoAndSaves() throws Exception {
         TodoList todoList = new TodoList("Work", "desc");
-        Todo todo = todoList.createAndAddTodo("Task", "Task desc", Priority.LOW);
+        Todo todo = todoList.createAndAddTodo("Task", "Task desc", Priority.LOW, null);
         UUID listId = todoList.getId();
         UUID todoId = todo.getId();
         when(todoListRepository.findById(listId)).thenReturn(Optional.of(todoList));

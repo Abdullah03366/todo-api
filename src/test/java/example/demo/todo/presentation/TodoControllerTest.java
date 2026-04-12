@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -29,18 +30,21 @@ class TodoControllerTest {
 
     @Test
     void getAllMapsTodosToDto() throws Exception {
-        when(todoService.findAll()).thenReturn(List.of(new Todo("Task", "Desc", Priority.HIGH)));
+        Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
+        when(todoService.findAll()).thenReturn(List.of(new Todo("Task", "Desc", Priority.HIGH, dueAt)));
 
         List<TodoDTO> result = todoController.getAll();
 
         assertEquals(1, result.size());
         assertEquals("Task", result.getFirst().title());
         assertEquals("HIGH", result.getFirst().priority());
+        assertEquals(dueAt, result.getFirst().dueAt());
     }
 
     @Test
     void getByIdMapsTodoToDto() throws Exception {
-        Todo todo = new Todo("Task", "Desc", Priority.MEDIUM);
+        Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
+        Todo todo = new Todo("Task", "Desc", Priority.MEDIUM, dueAt);
         UUID id = todo.getId();
         when(todoService.findById(id)).thenReturn(todo);
 
@@ -49,23 +53,26 @@ class TodoControllerTest {
         assertEquals(id, result.id());
         assertEquals("Task", result.title());
         assertEquals("MEDIUM", result.priority());
+        assertEquals(dueAt, result.dueAt());
     }
 
     @Test
     void updateDelegatesToServiceAndReturnsDto() throws Exception {
         UUID id = UUID.randomUUID();
-        Todo updated = new Todo("New", "New desc", Priority.LOW);
+        Date dueAt = new Date(System.currentTimeMillis() + 172_800_000L);
+        Todo updated = new Todo("New", "New desc", Priority.LOW, dueAt);
         updated.setCompleted(true);
-        TodoController.UpdateTodoDTO request = new TodoController.UpdateTodoDTO("New", "New desc", Priority.LOW, true);
+        TodoController.UpdateTodoDTO request = new TodoController.UpdateTodoDTO("New", "New desc", Priority.LOW, true, dueAt);
 
-        when(todoService.update(id, "New", "New desc", Priority.LOW, true)).thenReturn(updated);
+        when(todoService.update(id, "New", "New desc", Priority.LOW, true, dueAt)).thenReturn(updated);
 
         TodoDTO result = todoController.update(id, request);
 
         assertEquals("New", result.title());
         assertEquals("LOW", result.priority());
         assertTrue(result.completed());
-        verify(todoService).update(id, "New", "New desc", Priority.LOW, true);
+        assertEquals(dueAt, result.dueAt());
+        verify(todoService).update(id, "New", "New desc", Priority.LOW, true, dueAt);
     }
 
     @Test

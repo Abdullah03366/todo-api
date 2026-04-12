@@ -33,8 +33,8 @@ public class UserController {
         return DTOMapper.toUserDTO(userService.findById(id));
     }
 
-    @GetMapping("/login")
-    public UserDTO getByUsername(@RequestParam String username) {
+    @GetMapping("/login/{username}")
+    public UserDTO getByUsername(@PathVariable String username) {
         return DTOMapper.toUserDTO(userService.findByUsername(username));
     }
 

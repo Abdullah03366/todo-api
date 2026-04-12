@@ -8,6 +8,7 @@ import example.demo.todo.domain.todolist.Title;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -68,9 +69,9 @@ public class TodoList {
         return this.todos.add(todo);
     }
 
-    public Todo createAndAddTodo(String title, String description, Priority priority)
+    public Todo createAndAddTodo(String title, String description, Priority priority, Date dueAt)
             throws InvalidTitleException, InvalidDescriptionException {
-        Todo todo = new Todo(title, description, priority);
+        Todo todo = new Todo(title, description, priority, dueAt);
         this.addTodo(todo);
         return todo;
     }

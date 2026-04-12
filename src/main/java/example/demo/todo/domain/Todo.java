@@ -29,19 +29,23 @@ public class Todo {
     @Column(nullable = false, updatable = false)
     private Date createdAt;
 
+    @Column
+    private Date dueAt;
+
     @Column(nullable = false)
     private String priority;
 
     protected Todo() {
         // nodig voor JPA
     }
-    public Todo(String title, String description, Priority priority) throws InvalidTitleException, InvalidDescriptionException {
+    public Todo(String title, String description, Priority priority, Date dueAt) throws InvalidTitleException, InvalidDescriptionException {
         this.id = UUID.randomUUID();
         this.title = new Title(title);
         this.description = new Description(description);
         this.completed = false;
         this.createdAt = new Date();
         this.priority = priority.toString();
+        this.dueAt = dueAt;
     }
 
     public UUID getId() {
@@ -64,6 +68,10 @@ public class Todo {
         return createdAt;
     }
 
+    public Date getDueAt() {
+        return dueAt;
+    }
+
     public String getPriority() {
         return priority;
     }
@@ -80,6 +88,10 @@ public class Todo {
         this.completed = completed;
     }
 
+    public void setDueAt(Date dueAt) {
+        this.dueAt = dueAt;
+    }
+
     public void setPriority(Enum<Priority> priority) {
         this.priority = priority.toString();
     }
@@ -93,6 +105,7 @@ public class Todo {
                 ", description=" + description +
                 ", completed=" + completed +
                 ", createdAt=" + createdAt +
+                ", dueAt=" + dueAt +
                 ", priority=" + priority +
                 '}';
     }

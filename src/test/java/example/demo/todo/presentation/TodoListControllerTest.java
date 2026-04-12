@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -78,16 +79,18 @@ class TodoListControllerTest {
     void addTodoDelegatesToServiceAndMapsResponse() throws Exception {
         UUID todoListId = UUID.randomUUID();
         TodoList todoList = new TodoList("Work", "Desc");
-        todoList.createAndAddTodo("Task", "Task desc", Priority.HIGH);
+        Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
+        todoList.createAndAddTodo("Task", "Task desc", Priority.HIGH, dueAt);
         TodoListController.CreateTodoInListDTO request =
-                new TodoListController.CreateTodoInListDTO("Task", "Task desc", Priority.HIGH);
-        when(todoListService.addTodo(todoListId, "Task", "Task desc", Priority.HIGH)).thenReturn(todoList);
+                new TodoListController.CreateTodoInListDTO("Task", "Task desc", Priority.HIGH, dueAt);
+        when(todoListService.addTodo(todoListId, "Task", "Task desc", Priority.HIGH, dueAt)).thenReturn(todoList);
 
         TodoListDTO result = todoListController.addTodo(todoListId, request);
 
         assertEquals(1, result.todos().size());
         assertEquals("Task", result.todos().getFirst().title());
-        verify(todoListService).addTodo(todoListId, "Task", "Task desc", Priority.HIGH);
+        assertEquals(dueAt, result.todos().getFirst().dueAt());
+        verify(todoListService).addTodo(todoListId, "Task", "Task desc", Priority.HIGH, dueAt);
     }
 
     @Test

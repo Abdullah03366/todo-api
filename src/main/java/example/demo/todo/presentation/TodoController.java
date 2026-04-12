@@ -9,6 +9,7 @@ import example.demo.todo.presentation.dto.TodoDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -38,7 +39,14 @@ public class TodoController {
     @PatchMapping("/{id}")
     public TodoDTO update(@PathVariable UUID id, @RequestBody UpdateTodoDTO request)
             throws InvalidTitleException, InvalidDescriptionException {
-        return DTOMapper.toTodoDTO(todoService.update(id, request.title(), request.description(), request.priority(), request.completed()));
+        return DTOMapper.toTodoDTO(todoService.update(
+                id,
+                request.title(),
+                request.description(),
+                request.priority(),
+                request.completed(),
+                request.dueAt()
+        ));
     }
 
     @DeleteMapping("/{id}")
@@ -59,5 +67,5 @@ public class TodoController {
         return ex.getMessage();
     }
 
-    public record UpdateTodoDTO(String title, String description, Priority priority, Boolean completed) {}
+    public record UpdateTodoDTO(String title, String description, Priority priority, Boolean completed, Date dueAt) {}
 }

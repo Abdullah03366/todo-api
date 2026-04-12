@@ -1,5 +1,6 @@
 package example.demo.todo.presentation.dto;
 
+import java.util.Date;
 import java.util.UUID;
 
 public record TodoDTO(
@@ -7,6 +8,7 @@ public record TodoDTO(
         String title,
         String description,
         boolean completed,
-        String priority
+        String priority,
+        Date dueAt
 ) {}
 

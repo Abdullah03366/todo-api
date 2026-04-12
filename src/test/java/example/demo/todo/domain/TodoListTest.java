@@ -24,7 +24,7 @@ class TodoListTest {
     @Test
     void addAndRemoveTodoWorks() throws Exception {
         TodoList todoList = new TodoList("Work", "Work related todos");
-        Todo todo = new Todo("Task", "Description", Priority.HIGH);
+        Todo todo = new Todo("Task", "Description", Priority.HIGH, null);
 
         assertTrue(todoList.addTodo(todo));
         assertEquals(1, todoList.getTodos().size());
@@ -35,7 +35,7 @@ class TodoListTest {
     @Test
     void removeTodoReturnsFalseWhenTodoNotInList() throws Exception {
         TodoList todoList = new TodoList("Work", "Work related todos");
-        Todo todo = new Todo("Task", "Description", Priority.HIGH);
+        Todo todo = new Todo("Task", "Description", Priority.HIGH, null);
 
         assertFalse(todoList.removeTodo(todo));
     }
@@ -44,7 +44,7 @@ class TodoListTest {
     void createAndAddTodoAddsTodoToCollection() throws Exception {
         TodoList todoList = new TodoList("Work", "Work related todos");
 
-        Todo todo = todoList.createAndAddTodo("Task", "Description", Priority.MEDIUM);
+        Todo todo = todoList.createAndAddTodo("Task", "Description", Priority.MEDIUM, null);
 
         assertEquals(1, todoList.getTodos().size());
         assertSame(todo, todoList.getTodos().getFirst());
