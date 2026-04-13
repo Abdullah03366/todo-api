@@ -26,8 +26,11 @@ public class TodoList {
     @Column(nullable = false, length = 250)
     private Description description;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "todolist_id", nullable = false)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @OneToMany(mappedBy = "todoList", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Todo> todos;
 
     protected TodoList() {
@@ -53,6 +56,10 @@ public class TodoList {
         return description;
     }
 
+    public User getUser() {
+        return user;
+    }
+
     public List<Todo> getTodos() {
         return todos;
     }
@@ -65,13 +72,17 @@ public class TodoList {
         this.description = description;
     }
 
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     public boolean addTodo(Todo todo) {
         return this.todos.add(todo);
     }
 
     public Todo createAndAddTodo(String title, String description, Priority priority, Date dueAt)
             throws InvalidTitleException, InvalidDescriptionException {
-        Todo todo = new Todo(title, description, priority, dueAt);
+        Todo todo = new Todo(title, description, priority, dueAt, this);
         this.addTodo(todo);
         return todo;
     }

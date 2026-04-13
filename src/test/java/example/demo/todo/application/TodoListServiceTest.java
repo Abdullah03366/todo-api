@@ -36,29 +36,31 @@ class TodoListServiceTest {
 
     @Test
     void findAllReturnsRepositoryResult() throws Exception {
+        UUID userId = UUID.randomUUID();
         List<TodoList> todoLists = List.of(new TodoList("Work", "desc"));
-        when(todoListRepository.findAll()).thenReturn(todoLists);
+        when(todoListRepository.findAllByUser_Id(userId)).thenReturn(todoLists);
 
-        List<TodoList> result = todoListService.findAll();
+        List<TodoList> result = todoListService.findAll(userId);
 
         assertEquals(1, result.size());
-        verify(todoListRepository).findAll();
+        verify(todoListRepository).findAllByUser_Id(userId);
     }
 
     @Test
     void findByIdThrowsWhenMissing() {
+        UUID userId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
-        when(todoListRepository.findById(id)).thenReturn(Optional.empty());
+        when(todoListRepository.findByIdAndUser_Id(id, userId)).thenReturn(Optional.empty());
 
-        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> todoListService.findById(id));
+        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> todoListService.findById(userId, id));
 
-        assertEquals("TodoList not found: " + id, ex.getMessage());
+        assertEquals("TodoList not found for user: " + id, ex.getMessage());
     }
 
     @Test
     void createAddsTodoListToUserAndSavesUser() throws Exception {
         UUID userId = UUID.randomUUID();
-        User user = new User("abdullah");
+        User user = new User("abdullah", "hash");
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -83,12 +85,13 @@ class TodoListServiceTest {
 
     @Test
     void updateChangesFieldsAndSaves() throws Exception {
+        UUID userId = UUID.randomUUID();
         TodoList todoList = new TodoList("Old", "Old desc");
         UUID id = todoList.getId();
-        when(todoListRepository.findById(id)).thenReturn(Optional.of(todoList));
+        when(todoListRepository.findByIdAndUser_Id(id, userId)).thenReturn(Optional.of(todoList));
         when(todoListRepository.save(any(TodoList.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        TodoList updated = todoListService.update(id, "New", "New desc");
+        TodoList updated = todoListService.update(userId, id, "New", "New desc");
 
         assertEquals("New", updated.getTitle().getTitle());
         assertEquals("New desc", updated.getDescription().getDescription());
@@ -97,13 +100,14 @@ class TodoListServiceTest {
 
     @Test
     void addTodoCreatesTodoInListAndSaves() throws Exception {
+        UUID userId = UUID.randomUUID();
         TodoList todoList = new TodoList("Work", "desc");
         Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
         UUID id = todoList.getId();
-        when(todoListRepository.findById(id)).thenReturn(Optional.of(todoList));
+        when(todoListRepository.findByIdAndUser_Id(id, userId)).thenReturn(Optional.of(todoList));
         when(todoListRepository.save(any(TodoList.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        TodoList updated = todoListService.addTodo(id, "Task", "Task desc", Priority.HIGH, dueAt);
+        TodoList updated = todoListService.addTodo(userId, id, "Task", "Task desc", Priority.HIGH, dueAt);
 
         assertEquals(1, updated.getTodos().size());
         assertEquals("Task", updated.getTodos().getFirst().getTitle().getTitle());
@@ -113,14 +117,15 @@ class TodoListServiceTest {
 
     @Test
     void removeTodoRemovesLinkedTodoAndSaves() throws Exception {
+        UUID userId = UUID.randomUUID();
         TodoList todoList = new TodoList("Work", "desc");
         Todo todo = todoList.createAndAddTodo("Task", "Task desc", Priority.LOW, null);
         UUID listId = todoList.getId();
         UUID todoId = todo.getId();
-        when(todoListRepository.findById(listId)).thenReturn(Optional.of(todoList));
+        when(todoListRepository.findByIdAndUser_Id(listId, userId)).thenReturn(Optional.of(todoList));
         when(todoListRepository.save(any(TodoList.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        TodoList updated = todoListService.removeTodo(listId, todoId);
+        TodoList updated = todoListService.removeTodo(userId, listId, todoId);
 
         assertTrue(updated.getTodos().isEmpty());
         verify(todoListRepository).save(todoList);
@@ -128,13 +133,14 @@ class TodoListServiceTest {
 
     @Test
     void removeTodoThrowsWhenTodoNotLinked() throws Exception {
+        UUID userId = UUID.randomUUID();
         TodoList todoList = new TodoList("Work", "desc");
         UUID listId = todoList.getId();
         UUID unknownTodoId = UUID.randomUUID();
-        when(todoListRepository.findById(listId)).thenReturn(Optional.of(todoList));
+        when(todoListRepository.findByIdAndUser_Id(listId, userId)).thenReturn(Optional.of(todoList));
 
         NoSuchElementException ex = assertThrows(NoSuchElementException.class,
-                () -> todoListService.removeTodo(listId, unknownTodoId));
+                () -> todoListService.removeTodo(userId, listId, unknownTodoId));
 
         assertTrue(ex.getMessage().contains("is not linked to TodoList"));
         verify(todoListRepository, never()).save(any(TodoList.class));
@@ -142,22 +148,24 @@ class TodoListServiceTest {
 
     @Test
     void deleteRemovesWhenExisting() {
+        UUID userId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
-        when(todoListRepository.existsById(id)).thenReturn(true);
+        when(todoListRepository.findByIdAndUser_Id(id, userId)).thenReturn(Optional.of(mock(TodoList.class)));
 
-        todoListService.delete(id);
+        todoListService.delete(userId, id);
 
         verify(todoListRepository).deleteById(id);
     }
 
     @Test
     void deleteThrowsWhenMissing() {
+        UUID userId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
-        when(todoListRepository.existsById(id)).thenReturn(false);
+        when(todoListRepository.findByIdAndUser_Id(id, userId)).thenReturn(Optional.empty());
 
-        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> todoListService.delete(id));
+        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> todoListService.delete(userId, id));
 
-        assertEquals("TodoList not found: " + id, ex.getMessage());
+        assertEquals("TodoList not found for user: " + id, ex.getMessage());
     }
 }
 

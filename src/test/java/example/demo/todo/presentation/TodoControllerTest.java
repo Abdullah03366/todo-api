@@ -5,11 +5,14 @@ import example.demo.todo.domain.Priority;
 import example.demo.todo.domain.Todo;
 import example.demo.todo.domain.exceptions.InvalidTitleException;
 import example.demo.todo.presentation.dto.TodoDTO;
+import example.demo.todo.security.AuthRequestContext;
+import example.demo.todo.security.AppUserPrincipal;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.util.Date;
 import java.util.List;
@@ -28,12 +31,19 @@ class TodoControllerTest {
     @InjectMocks
     private TodoController todoController;
 
+    private MockHttpServletRequest request(AppUserPrincipal principal) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute(AuthRequestContext.AUTHENTICATED_USER_ATTRIBUTE, principal);
+        return request;
+    }
+
     @Test
     void getAllMapsTodosToDto() throws Exception {
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
         Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
-        when(todoService.findAll()).thenReturn(List.of(new Todo("Task", "Desc", Priority.HIGH, dueAt)));
+        when(todoService.findAll(principal.getUserId())).thenReturn(List.of(new Todo("Task", "Desc", Priority.HIGH, dueAt)));
 
-        List<TodoDTO> result = todoController.getAll();
+        List<TodoDTO> result = todoController.getAll(request(principal));
 
         assertEquals(1, result.size());
         assertEquals("Task", result.getFirst().title());
@@ -43,12 +53,13 @@ class TodoControllerTest {
 
     @Test
     void getByIdMapsTodoToDto() throws Exception {
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
         Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
         Todo todo = new Todo("Task", "Desc", Priority.MEDIUM, dueAt);
         UUID id = todo.getId();
-        when(todoService.findById(id)).thenReturn(todo);
+        when(todoService.findById(principal.getUserId(), id)).thenReturn(todo);
 
-        TodoDTO result = todoController.getById(id);
+        TodoDTO result = todoController.getById(request(principal), id);
 
         assertEquals(id, result.id());
         assertEquals("Task", result.title());
@@ -58,30 +69,32 @@ class TodoControllerTest {
 
     @Test
     void updateDelegatesToServiceAndReturnsDto() throws Exception {
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
         UUID id = UUID.randomUUID();
         Date dueAt = new Date(System.currentTimeMillis() + 172_800_000L);
         Todo updated = new Todo("New", "New desc", Priority.LOW, dueAt);
         updated.setCompleted(true);
         TodoController.UpdateTodoDTO request = new TodoController.UpdateTodoDTO("New", "New desc", Priority.LOW, true, dueAt);
 
-        when(todoService.update(id, "New", "New desc", Priority.LOW, true, dueAt)).thenReturn(updated);
+        when(todoService.update(principal.getUserId(), id, "New", "New desc", Priority.LOW, true, dueAt)).thenReturn(updated);
 
-        TodoDTO result = todoController.update(id, request);
+        TodoDTO result = todoController.update(request(principal), id, request);
 
         assertEquals("New", result.title());
         assertEquals("LOW", result.priority());
         assertTrue(result.completed());
         assertEquals(dueAt, result.dueAt());
-        verify(todoService).update(id, "New", "New desc", Priority.LOW, true, dueAt);
+        verify(todoService).update(principal.getUserId(), id, "New", "New desc", Priority.LOW, true, dueAt);
     }
 
     @Test
     void deleteDelegatesToService() {
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
         UUID id = UUID.randomUUID();
 
-        todoController.delete(id);
+        todoController.delete(request(principal), id);
 
-        verify(todoService).delete(id);
+        verify(todoService).delete(principal.getUserId(), id);
     }
 
     @Test

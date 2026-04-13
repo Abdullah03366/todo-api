@@ -4,12 +4,12 @@ import example.demo.todo.application.UserService;
 import example.demo.todo.domain.exceptions.InvalidUsernameException;
 import example.demo.todo.presentation.dto.DTOMapper;
 import example.demo.todo.presentation.dto.UserDTO;
+import example.demo.todo.security.AuthRequestContext;
 import org.springframework.http.HttpStatus;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -21,38 +21,24 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping
-    public List<UserDTO> getAll() {
-        return userService.findAll().stream()
-                .map(DTOMapper::toUserDTO)
-                .toList();
+    @GetMapping("/me")
+    public UserDTO getCurrent(HttpServletRequest request) {
+        var principal = AuthRequestContext.requireUser(request);
+        return DTOMapper.toUserDTO(userService.findById(principal.getUserId()));
     }
 
-    @GetMapping("/{id}")
-    public UserDTO getById(@PathVariable UUID id) {
-        return DTOMapper.toUserDTO(userService.findById(id));
+    @PatchMapping("/me")
+    public UserDTO updateCurrent(HttpServletRequest authRequest, @RequestBody UpdateUserDTO request)
+            throws InvalidUsernameException {
+        var principal = AuthRequestContext.requireUser(authRequest);
+        return DTOMapper.toUserDTO(userService.update(principal.getUserId(), request.username(), request.password()));
     }
 
-    @GetMapping("/login/{username}")
-    public UserDTO getByUsername(@PathVariable String username) {
-        return DTOMapper.toUserDTO(userService.findByUsername(username));
-    }
-
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserDTO create(@RequestBody CreateUserDTO request) throws InvalidUsernameException {
-        return DTOMapper.toUserDTO(userService.create(request.username()));
-    }
-
-    @PatchMapping("/{id}")
-    public UserDTO update(@PathVariable UUID id, @RequestBody UpdateUserDTO request) throws InvalidUsernameException {
-        return DTOMapper.toUserDTO(userService.update(id, request.username()));
-    }
-
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
-        userService.delete(id);
+    public void deleteCurrent(HttpServletRequest request) {
+        var principal = AuthRequestContext.requireUser(request);
+        userService.delete(principal.getUserId());
     }
 
     @ExceptionHandler(NoSuchElementException.class)
@@ -61,12 +47,11 @@ public class UserController {
         return ex.getMessage();
     }
 
-    @ExceptionHandler(InvalidUsernameException.class)
+    @ExceptionHandler({InvalidUsernameException.class, IllegalArgumentException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleValidation(Exception ex) {
         return ex.getMessage();
     }
 
-    public record CreateUserDTO(String username) {}
-    public record UpdateUserDTO(String username) {}
+    public record UpdateUserDTO(String username, String password) {}
 }

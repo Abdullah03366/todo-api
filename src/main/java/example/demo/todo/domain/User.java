@@ -9,26 +9,29 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "username"))
 public class User {
     @Id
     private UUID id;
 
     @Embedded
-    @Column(nullable = false, length = 50)
+    @AttributeOverride(name = "name", column = @Column(name = "username", nullable = false, length = 50, unique = true))
     private Username username;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id", nullable = false)
+    @Column(nullable = false, length = 100)
+    private String passwordHash;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TodoList> todoLists;
 
     protected User() {
         // nodig voor JPA
     }
 
-    public User(String username) throws InvalidUsernameException {
+    public User(String username, String passwordHash) throws InvalidUsernameException {
         this.id = UUID.randomUUID();
         this.username = new Username(username);
+        this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash must not be null");
         this.todoLists = new ArrayList<>();
     }
 
@@ -44,11 +47,20 @@ public class User {
         return todoLists;
     }
 
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
     public void setUsername(Username username) {
         this.username = username;
     }
 
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash must not be null");
+    }
+
     public boolean addTodoList(TodoList todoList) {
+        todoList.setUser(this);
         return this.todoLists.add(todoList);
     }
 

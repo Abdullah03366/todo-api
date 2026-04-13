@@ -23,17 +23,17 @@ public class TodoService {
         this.todoRepository = todoRepository;
     }
 
-    public List<Todo> findAll() {
-        return todoRepository.findAll();
+    public List<Todo> findAll(UUID userId) {
+        return todoRepository.findAllByTodoList_User_Id(userId);
     }
 
-    public Todo findById(UUID id) {
-        return todoRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Todo not found: " + id));
+    public Todo findById(UUID userId, UUID id) {
+        return todoRepository.findByIdAndTodoList_User_Id(id, userId)
+                .orElseThrow(() -> new NoSuchElementException("Todo not found for user: " + id));
     }
 
-    public Todo update(UUID id, String title, String description, Priority priority, Boolean completed, Date dueAt) throws InvalidTitleException, InvalidDescriptionException {
-        Todo todo = findById(id);
+    public Todo update(UUID userId, UUID id, String title, String description, Priority priority, Boolean completed, Date dueAt) throws InvalidTitleException, InvalidDescriptionException {
+        Todo todo = findById(userId, id);
 
         todo.setTitle(new Title(title));
         todo.setDescription(new Description(description));
@@ -44,9 +44,9 @@ public class TodoService {
         return todoRepository.save(todo);
     }
 
-    public void delete(UUID id) {
-        if (!todoRepository.existsById(id)) {
-            throw new NoSuchElementException("TodoList not found: " + id);
+    public void delete(UUID userId, UUID id) {
+        if (!todoRepository.existsByIdAndTodoList_User_Id(id, userId)) {
+            throw new NoSuchElementException("Todo not found for user: " + id);
         }
         todoRepository.deleteById(id);
     }

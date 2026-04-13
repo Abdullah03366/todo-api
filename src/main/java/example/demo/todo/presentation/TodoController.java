@@ -6,6 +6,8 @@ import example.demo.todo.domain.exceptions.InvalidDescriptionException;
 import example.demo.todo.domain.exceptions.InvalidTitleException;
 import example.demo.todo.presentation.dto.DTOMapper;
 import example.demo.todo.presentation.dto.TodoDTO;
+import example.demo.todo.security.AuthRequestContext;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,21 +27,25 @@ public class TodoController {
     }
 
     @GetMapping
-    public List<TodoDTO> getAll() {
-        return todoService.findAll().stream()
+    public List<TodoDTO> getAll(HttpServletRequest request) {
+        var principal = AuthRequestContext.requireUser(request);
+        return todoService.findAll(principal.getUserId()).stream()
                 .map(DTOMapper::toTodoDTO)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public TodoDTO getById(@PathVariable UUID id) {
-        return DTOMapper.toTodoDTO(todoService.findById(id));
+    public TodoDTO getById(HttpServletRequest request, @PathVariable UUID id) {
+        var principal = AuthRequestContext.requireUser(request);
+        return DTOMapper.toTodoDTO(todoService.findById(principal.getUserId(), id));
     }
 
     @PatchMapping("/{id}")
-    public TodoDTO update(@PathVariable UUID id, @RequestBody UpdateTodoDTO request)
+    public TodoDTO update(HttpServletRequest authRequest, @PathVariable UUID id, @RequestBody UpdateTodoDTO request)
             throws InvalidTitleException, InvalidDescriptionException {
+        var principal = AuthRequestContext.requireUser(authRequest);
         return DTOMapper.toTodoDTO(todoService.update(
+                principal.getUserId(),
                 id,
                 request.title(),
                 request.description(),
@@ -51,8 +57,9 @@ public class TodoController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
-        todoService.delete(id);
+    public void delete(HttpServletRequest request, @PathVariable UUID id) {
+        var principal = AuthRequestContext.requireUser(request);
+        todoService.delete(principal.getUserId(), id);
     }
 
     @ExceptionHandler(NoSuchElementException.class)

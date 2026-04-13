@@ -35,6 +35,10 @@ public class Todo {
     @Column(nullable = false)
     private String priority;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "todolist_id", nullable = false)
+    private TodoList todoList;
+
     protected Todo() {
         // nodig voor JPA
     }
@@ -46,6 +50,12 @@ public class Todo {
         this.createdAt = new Date();
         this.priority = priority.toString();
         this.dueAt = dueAt;
+    }
+
+    public Todo(String title, String description, Priority priority, Date dueAt, TodoList todoList)
+            throws InvalidTitleException, InvalidDescriptionException {
+        this(title, description, priority, dueAt);
+        this.todoList = todoList;
     }
 
     public UUID getId() {
@@ -74,6 +84,10 @@ public class Todo {
 
     public String getPriority() {
         return priority;
+    }
+
+    public TodoList getTodoList() {
+        return todoList;
     }
 
     public void setTitle(Title title) {

@@ -30,45 +30,49 @@ class TodoServiceTest {
 
     @Test
     void findAllReturnsRepositoryResult() throws Exception {
+        UUID userId = UUID.randomUUID();
         List<Todo> todos = List.of(new Todo("Task", "Description", Priority.HIGH, null));
-        when(todoRepository.findAll()).thenReturn(todos);
+        when(todoRepository.findAllByTodoList_User_Id(userId)).thenReturn(todos);
 
-        List<Todo> result = todoService.findAll();
+        List<Todo> result = todoService.findAll(userId);
 
         assertEquals(1, result.size());
-        verify(todoRepository).findAll();
+        verify(todoRepository).findAllByTodoList_User_Id(userId);
     }
 
     @Test
     void findByIdReturnsTodoWhenPresent() throws Exception {
+        UUID userId = UUID.randomUUID();
         Todo todo = new Todo("Task", "Description", Priority.HIGH, null);
-        when(todoRepository.findById(todo.getId())).thenReturn(Optional.of(todo));
+        when(todoRepository.findByIdAndTodoList_User_Id(todo.getId(), userId)).thenReturn(Optional.of(todo));
 
-        Todo result = todoService.findById(todo.getId());
+        Todo result = todoService.findById(userId, todo.getId());
 
         assertSame(todo, result);
     }
 
     @Test
     void findByIdThrowsWhenMissing() {
+        UUID userId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
-        when(todoRepository.findById(id)).thenReturn(Optional.empty());
+        when(todoRepository.findByIdAndTodoList_User_Id(id, userId)).thenReturn(Optional.empty());
 
-        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> todoService.findById(id));
+        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> todoService.findById(userId, id));
 
-        assertEquals("Todo not found: " + id, ex.getMessage());
+        assertEquals("Todo not found for user: " + id, ex.getMessage());
     }
 
     @Test
     void updateChangesAllFieldsWhenProvided() throws Exception {
+        UUID userId = UUID.randomUUID();
         Todo todo = new Todo("Old", "Old desc", Priority.MEDIUM, null);
         Date createdAtBefore = todo.getCreated_at();
         Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
         UUID id = todo.getId();
-        when(todoRepository.findById(id)).thenReturn(Optional.of(todo));
+        when(todoRepository.findByIdAndTodoList_User_Id(id, userId)).thenReturn(Optional.of(todo));
         when(todoRepository.save(any(Todo.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Todo updated = todoService.update(id, "New", "New desc", Priority.HIGH, true, dueAt);
+        Todo updated = todoService.update(userId, id, "New", "New desc", Priority.HIGH, true, dueAt);
 
         assertEquals("New", updated.getTitle().getTitle());
         assertEquals("New desc", updated.getDescription().getDescription());
@@ -81,13 +85,14 @@ class TodoServiceTest {
 
     @Test
     void updateLeavesOptionalFieldsUnchangedWhenNull() throws Exception {
+        UUID userId = UUID.randomUUID();
         Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
         Todo todo = new Todo("Old", "Old desc", Priority.MEDIUM, dueAt);
         UUID id = todo.getId();
-        when(todoRepository.findById(id)).thenReturn(Optional.of(todo));
+        when(todoRepository.findByIdAndTodoList_User_Id(id, userId)).thenReturn(Optional.of(todo));
         when(todoRepository.save(any(Todo.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Todo updated = todoService.update(id, "New", "New desc", null, null, null);
+        Todo updated = todoService.update(userId, id, "New", "New desc", null, null, null);
 
         assertEquals("MEDIUM", updated.getPriority());
         assertFalse(updated.getCompleted());
@@ -98,22 +103,24 @@ class TodoServiceTest {
 
     @Test
     void deleteRemovesTodoWhenExisting() {
+        UUID userId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
-        when(todoRepository.existsById(id)).thenReturn(true);
+        when(todoRepository.existsByIdAndTodoList_User_Id(id, userId)).thenReturn(true);
 
-        todoService.delete(id);
+        todoService.delete(userId, id);
 
         verify(todoRepository).deleteById(id);
     }
 
     @Test
     void deleteThrowsWhenTodoMissing() {
+        UUID userId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
-        when(todoRepository.existsById(id)).thenReturn(false);
+        when(todoRepository.existsByIdAndTodoList_User_Id(id, userId)).thenReturn(false);
 
-        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> todoService.delete(id));
+        NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> todoService.delete(userId, id));
 
-        assertEquals("TodoList not found: " + id, ex.getMessage());
+        assertEquals("Todo not found for user: " + id, ex.getMessage());
         verify(todoRepository, never()).deleteById(any(UUID.class));
     }
 }

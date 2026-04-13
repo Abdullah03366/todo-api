@@ -10,7 +10,7 @@ class UserTest {
 
     @Test
     void constructorInitializesFieldsAndEmptyTodoLists() throws Exception {
-        User user = new User("abdullah");
+        User user = new User("abdullah", "hash");
 
         assertNotNull(user.getId());
         assertEquals("abdullah", user.getUsername().getName());
@@ -20,12 +20,12 @@ class UserTest {
 
     @Test
     void constructorRejectsInvalidUsername() {
-        assertThrows(InvalidUsernameException.class, () -> new User(" "));
+        assertThrows(InvalidUsernameException.class, () -> new User(" ", "hash"));
     }
 
     @Test
     void addAndRemoveTodoListWorks() throws Exception {
-        User user = new User("abdullah");
+        User user = new User("abdullah", "hash");
         TodoList todoList = new TodoList("Work", "Work related todos");
 
         assertTrue(user.addTodoList(todoList));
@@ -36,7 +36,7 @@ class UserTest {
 
     @Test
     void removeTodoListReturnsFalseWhenTodoListNotPresent() throws Exception {
-        User user = new User("abdullah");
+        User user = new User("abdullah", "hash");
         TodoList todoList = new TodoList("Work", "Work related todos");
 
         assertFalse(user.removeTodoList(todoList));
@@ -44,7 +44,7 @@ class UserTest {
 
     @Test
     void setUsernameUpdatesField() throws Exception {
-        User user = new User("abdullah");
+        User user = new User("abdullah", "hash");
 
         user.setUsername(new Username("asanli"));
 
@@ -53,20 +53,19 @@ class UserTest {
 
     @Test
     void equalsAndHashCodeBehaveAsExpected() throws Exception {
-        User user = new User("abdullah");
+        User user = new User("abdullah", "hash");
 
-        assertSame(user, user);
         assertNotEquals(null, user);
         assertNotEquals("not a user", user);
 
-        User other = new User("abdullah");
+        User other = new User("abdullah", "hash2");
         assertNotEquals(user, other);
         assertNotEquals(user.hashCode(), other.hashCode());
     }
 
     @Test
     void toStringContainsKeyFields() throws Exception {
-        User user = new User("abdullah");
+        User user = new User("abdullah", "hash");
 
         String value = user.toString();
 

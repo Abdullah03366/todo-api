@@ -3,6 +3,7 @@ package example.demo.todo.application;
 import example.demo.todo.data.UserRepository;
 import example.demo.todo.domain.User;
 import example.demo.todo.domain.exceptions.InvalidUsernameException;
+import example.demo.todo.security.PasswordHasher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,7 +30,7 @@ class UserServiceTest {
 
     @Test
     void findAllReturnsRepositoryResult() throws Exception {
-        List<User> users = List.of(new User("abdullah"));
+        List<User> users = List.of(new User("abdullah", "hash"));
         when(userRepository.findAll()).thenReturn(users);
 
         List<User> result = userService.findAll();
@@ -40,7 +41,7 @@ class UserServiceTest {
 
     @Test
     void findByIdReturnsUserWhenPresent() throws Exception {
-        User user = new User("abdullah");
+        User user = new User("abdullah", "hash");
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
         User result = userService.findById(user.getId());
@@ -60,18 +61,18 @@ class UserServiceTest {
 
     @Test
     void findByUsernameReturnsUserWhenPresent() throws Exception {
-        User user = new User("abdullah");
-        when(userRepository.findByUsername("abdullah")).thenReturn(Optional.of(user));
+        User user = new User("abdullah", "hash");
+        when(userRepository.findByUsername_Name("abdullah")).thenReturn(Optional.of(user));
 
         User result = userService.findByUsername("abdullah");
 
         assertSame(user, result);
-        verify(userRepository).findByUsername("abdullah");
+        verify(userRepository).findByUsername_Name("abdullah");
     }
 
     @Test
     void findByUsernameThrowsWhenMissing() {
-        when(userRepository.findByUsername("missing")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername_Name("missing")).thenReturn(Optional.empty());
 
         NoSuchElementException ex = assertThrows(NoSuchElementException.class, () -> userService.findByUsername("missing"));
 
@@ -80,25 +81,102 @@ class UserServiceTest {
 
     @Test
     void createBuildsAndSavesUser() throws InvalidUsernameException {
+        when(userRepository.findByUsername_Name("abdullah")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        User created = userService.create("abdullah");
+        User created = userService.create("abdullah", "SuperSecret1");
 
         assertEquals("abdullah", created.getUsername().getName());
+        assertTrue(PasswordHasher.matches("SuperSecret1", created.getPasswordHash()));
         verify(userRepository).save(any(User.class));
     }
 
     @Test
+    void createRejectsShortPassword() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> userService.create("abdullah", "short"));
+
+        assertEquals("Password must be between 8 and 72 characters", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void createRejectsDuplicateUsername() throws InvalidUsernameException {
+        User existing = new User("abdullah", PasswordHasher.hash("OtherSecret1"));
+        when(userRepository.findByUsername_Name("abdullah")).thenReturn(Optional.of(existing));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> userService.create("abdullah", "SuperSecret1"));
+
+        assertEquals("Username already exists", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
     void updateChangesUsernameAndSaves() throws Exception {
-        User user = new User("old");
+        User user = new User("old", "oldHash");
         UUID id = user.getId();
         when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername_Name("newname")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        User updated = userService.update(id, "newname");
+        User updated = userService.update(id, "newname", "NewSecret1");
 
         assertEquals("newname", updated.getUsername().getName());
+        assertTrue(PasswordHasher.matches("NewSecret1", updated.getPasswordHash()));
         verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateRejectsDuplicateUsernameForDifferentUser() throws Exception {
+        User user = new User("old", "oldHash");
+        User other = new User("existing", PasswordHasher.hash("OtherSecret1"));
+        UUID id = user.getId();
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername_Name("existing")).thenReturn(Optional.of(other));
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> userService.update(id, "existing", "NewSecret1"));
+
+        assertEquals("Username already exists", ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void updateAllowsKeepingOwnUsername() throws Exception {
+        User user = new User("old", "oldHash");
+        UUID id = user.getId();
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername_Name("old")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User updated = userService.update(id, "old", "NewSecret1");
+
+        assertEquals("old", updated.getUsername().getName());
+        assertTrue(PasswordHasher.matches("NewSecret1", updated.getPasswordHash()));
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void authenticateReturnsUserOnValidPassword() throws Exception {
+        String hash = PasswordHasher.hash("SuperSecret1");
+        User user = new User("abdullah", hash);
+        when(userRepository.findByUsername_Name("abdullah")).thenReturn(Optional.of(user));
+
+        User result = userService.authenticate("abdullah", "SuperSecret1");
+
+        assertSame(user, result);
+    }
+
+    @Test
+    void authenticateThrowsOnWrongPassword() throws Exception {
+        User user = new User("abdullah", PasswordHasher.hash("OtherSecret1"));
+        when(userRepository.findByUsername_Name("abdullah")).thenReturn(Optional.of(user));
+
+        NoSuchElementException ex = assertThrows(NoSuchElementException.class,
+                () -> userService.authenticate("abdullah", "SuperSecret1"));
+
+        assertEquals("Invalid credentials", ex.getMessage());
     }
 
     @Test

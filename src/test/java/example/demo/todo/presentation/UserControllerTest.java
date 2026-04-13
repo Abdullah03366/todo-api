@@ -4,13 +4,15 @@ import example.demo.todo.application.UserService;
 import example.demo.todo.domain.User;
 import example.demo.todo.domain.exceptions.InvalidUsernameException;
 import example.demo.todo.presentation.dto.UserDTO;
+import example.demo.todo.security.AuthRequestContext;
+import example.demo.todo.security.AppUserPrincipal;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -26,72 +28,45 @@ class UserControllerTest {
     @InjectMocks
     private UserController userController;
 
-    @Test
-    void getAllMapsUsersToDto() throws Exception {
-        when(userService.findAll()).thenReturn(List.of(new User("abdullah")));
-
-        List<UserDTO> result = userController.getAll();
-
-        assertEquals(1, result.size());
-        assertEquals("abdullah", result.getFirst().username());
+    private MockHttpServletRequest requestWithUser(User user) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute(AuthRequestContext.AUTHENTICATED_USER_ATTRIBUTE,
+                new AppUserPrincipal(user.getId(), user.getUsername().getName(), user.getPasswordHash()));
+        return request;
     }
 
     @Test
-    void getByIdMapsUserToDto() throws Exception {
-        User user = new User("abdullah");
+    void getCurrentMapsUserToDto() throws Exception {
+        User user = new User("abdullah", "hash");
         UUID id = user.getId();
         when(userService.findById(id)).thenReturn(user);
 
-        UserDTO result = userController.getById(id);
+        UserDTO result = userController.getCurrent(requestWithUser(user));
 
         assertEquals(id, result.id());
         assertEquals("abdullah", result.username());
     }
 
     @Test
-    void getByUsernameMapsUserToDto() throws Exception {
-        User user = new User("abdullah");
-        when(userService.findByUsername("abdullah")).thenReturn(user);
+    void updateCurrentDelegatesToServiceAndMapsResponse() throws Exception {
+        User user = new User("updated", "newHash");
+        UUID id = user.getId();
+        UserController.UpdateUserDTO request = new UserController.UpdateUserDTO("updated", "NewSecret1");
+        when(userService.update(id, "updated", "NewSecret1")).thenReturn(user);
 
-        UserDTO result = userController.getByUsername("abdullah");
-
-        assertEquals(user.getId(), result.id());
-        assertEquals("abdullah", result.username());
-        verify(userService).findByUsername("abdullah");
-    }
-
-    @Test
-    void createDelegatesToServiceAndMapsResponse() throws Exception {
-        User user = new User("abdullah");
-        UserController.CreateUserDTO request = new UserController.CreateUserDTO("abdullah");
-        when(userService.create("abdullah")).thenReturn(user);
-
-        UserDTO result = userController.create(request);
-
-        assertEquals("abdullah", result.username());
-        verify(userService).create("abdullah");
-    }
-
-    @Test
-    void updateDelegatesToServiceAndMapsResponse() throws Exception {
-        UUID id = UUID.randomUUID();
-        User user = new User("updated");
-        UserController.UpdateUserDTO request = new UserController.UpdateUserDTO("updated");
-        when(userService.update(id, "updated")).thenReturn(user);
-
-        UserDTO result = userController.update(id, request);
+        UserDTO result = userController.updateCurrent(requestWithUser(user), request);
 
         assertEquals("updated", result.username());
-        verify(userService).update(id, "updated");
+        verify(userService).update(id, "updated", "NewSecret1");
     }
 
     @Test
-    void deleteDelegatesToService() {
-        UUID id = UUID.randomUUID();
+    void deleteCurrentDelegatesToService() throws InvalidUsernameException {
+        User user = new User("abdullah", "hash");
 
-        userController.delete(id);
+        userController.deleteCurrent(requestWithUser(user));
 
-        verify(userService).delete(id);
+        verify(userService).delete(user.getId());
     }
 
     @Test

@@ -4,11 +4,14 @@ import example.demo.todo.application.TodoListService;
 import example.demo.todo.domain.Priority;
 import example.demo.todo.domain.TodoList;
 import example.demo.todo.presentation.dto.TodoListDTO;
+import example.demo.todo.security.AuthRequestContext;
+import example.demo.todo.security.AppUserPrincipal;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.util.Date;
 import java.util.List;
@@ -27,11 +30,18 @@ class TodoListControllerTest {
     @InjectMocks
     private TodoListController todoListController;
 
+    private MockHttpServletRequest request(AppUserPrincipal principal) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute(AuthRequestContext.AUTHENTICATED_USER_ATTRIBUTE, principal);
+        return request;
+    }
+
     @Test
     void getAllMapsTodoListsToDto() throws Exception {
-        when(todoListService.findAll()).thenReturn(List.of(new TodoList("Work", "Desc")));
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
+        when(todoListService.findAll(principal.getUserId())).thenReturn(List.of(new TodoList("Work", "Desc")));
 
-        List<TodoListDTO> result = todoListController.getAll();
+        List<TodoListDTO> result = todoListController.getAll(request(principal));
 
         assertEquals(1, result.size());
         assertEquals("Work", result.getFirst().title());
@@ -39,11 +49,12 @@ class TodoListControllerTest {
 
     @Test
     void getByIdMapsTodoListToDto() throws Exception {
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
         TodoList todoList = new TodoList("Work", "Desc");
         UUID id = todoList.getId();
-        when(todoListService.findById(id)).thenReturn(todoList);
+        when(todoListService.findById(principal.getUserId(), id)).thenReturn(todoList);
 
-        TodoListDTO result = todoListController.getById(id);
+        TodoListDTO result = todoListController.getById(request(principal), id);
 
         assertEquals(id, result.id());
         assertEquals("Work", result.title());
@@ -51,55 +62,58 @@ class TodoListControllerTest {
 
     @Test
     void createDelegatesToServiceAndMapsResponse() throws Exception {
-        UUID userId = UUID.randomUUID();
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
         TodoList todoList = new TodoList("Work", "Desc");
-        TodoListController.CreateTodoListDTO request = new TodoListController.CreateTodoListDTO(userId, "Work", "Desc");
-        when(todoListService.create(userId, "Work", "Desc")).thenReturn(todoList);
+        TodoListController.CreateTodoListDTO request = new TodoListController.CreateTodoListDTO("Work", "Desc");
+        when(todoListService.create(principal.getUserId(), "Work", "Desc")).thenReturn(todoList);
 
-        TodoListDTO result = todoListController.create(request);
+        TodoListDTO result = todoListController.create(request(principal), request);
 
         assertEquals("Work", result.title());
-        verify(todoListService).create(userId, "Work", "Desc");
+        verify(todoListService).create(principal.getUserId(), "Work", "Desc");
     }
 
     @Test
     void updateDelegatesToServiceAndMapsResponse() throws Exception {
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
         UUID id = UUID.randomUUID();
         TodoList todoList = new TodoList("Updated", "Updated desc");
         TodoListController.UpdateTodoListDTO request = new TodoListController.UpdateTodoListDTO("Updated", "Updated desc");
-        when(todoListService.update(id, "Updated", "Updated desc")).thenReturn(todoList);
+        when(todoListService.update(principal.getUserId(), id, "Updated", "Updated desc")).thenReturn(todoList);
 
-        TodoListDTO result = todoListController.update(id, request);
+        TodoListDTO result = todoListController.update(request(principal), id, request);
 
         assertEquals("Updated", result.title());
-        verify(todoListService).update(id, "Updated", "Updated desc");
+        verify(todoListService).update(principal.getUserId(), id, "Updated", "Updated desc");
     }
 
     @Test
     void addTodoDelegatesToServiceAndMapsResponse() throws Exception {
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
         UUID todoListId = UUID.randomUUID();
         TodoList todoList = new TodoList("Work", "Desc");
         Date dueAt = new Date(System.currentTimeMillis() + 86_400_000L);
         todoList.createAndAddTodo("Task", "Task desc", Priority.HIGH, dueAt);
         TodoListController.CreateTodoInListDTO request =
                 new TodoListController.CreateTodoInListDTO("Task", "Task desc", Priority.HIGH, dueAt);
-        when(todoListService.addTodo(todoListId, "Task", "Task desc", Priority.HIGH, dueAt)).thenReturn(todoList);
+        when(todoListService.addTodo(principal.getUserId(), todoListId, "Task", "Task desc", Priority.HIGH, dueAt)).thenReturn(todoList);
 
-        TodoListDTO result = todoListController.addTodo(todoListId, request);
+        TodoListDTO result = todoListController.addTodo(request(principal), todoListId, request);
 
         assertEquals(1, result.todos().size());
         assertEquals("Task", result.todos().getFirst().title());
         assertEquals(dueAt, result.todos().getFirst().dueAt());
-        verify(todoListService).addTodo(todoListId, "Task", "Task desc", Priority.HIGH, dueAt);
+        verify(todoListService).addTodo(principal.getUserId(), todoListId, "Task", "Task desc", Priority.HIGH, dueAt);
     }
 
     @Test
     void deleteDelegatesToService() {
+        AppUserPrincipal principal = new AppUserPrincipal(UUID.randomUUID(), "abdullah", "hash");
         UUID id = UUID.randomUUID();
 
-        todoListController.delete(id);
+        todoListController.delete(request(principal), id);
 
-        verify(todoListService).delete(id);
+        verify(todoListService).delete(principal.getUserId(), id);
     }
 
     @Test

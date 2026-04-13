@@ -29,13 +29,13 @@ public class TodoListService {
         this.userRepository = userRepository;
     }
 
-    public List<TodoList> findAll() {
-        return todoListRepository.findAll();
+    public List<TodoList> findAll(UUID userId) {
+        return todoListRepository.findAllByUser_Id(userId);
     }
 
-    public TodoList findById(UUID id) {
-        return todoListRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("TodoList not found: " + id));
+    public TodoList findById(UUID userId, UUID id) {
+        return todoListRepository.findByIdAndUser_Id(id, userId)
+                .orElseThrow(() -> new NoSuchElementException("TodoList not found for user: " + id));
     }
 
     public TodoList create(UUID userId, String title, String description)
@@ -49,26 +49,26 @@ public class TodoListService {
         return todoList;
     }
 
-    public TodoList update(UUID id, String title, String description)
+    public TodoList update(UUID userId, UUID id, String title, String description)
             throws InvalidTitleException, InvalidDescriptionException {
-        TodoList todoList = findById(id);
+        TodoList todoList = findById(userId, id);
         todoList.setTitle(new Title(title));
         todoList.setDescription(new Description(description));
         return todoListRepository.save(todoList);
     }
 
     @Transactional
-    public TodoList addTodo(UUID todoListId, String title, String description, Priority priority, Date dueAt)
+    public TodoList addTodo(UUID userId, UUID todoListId, String title, String description, Priority priority, Date dueAt)
             throws InvalidTitleException, InvalidDescriptionException {
-        TodoList todoList = findById(todoListId);
+        TodoList todoList = findById(userId, todoListId);
         todoList.createAndAddTodo(title, description, priority, dueAt);
 
         return todoListRepository.save(todoList);
     }
 
     @Transactional
-    public TodoList removeTodo(UUID todoListId, UUID todoId) {
-        TodoList todoList = findById(todoListId);
+    public TodoList removeTodo(UUID userId, UUID todoListId, UUID todoId) {
+        TodoList todoList = findById(userId, todoListId);
 
         Todo linkedTodo = todoList.getTodos().stream()
                 .filter(existingTodo -> existingTodo.getId().equals(todoId))
@@ -80,9 +80,9 @@ public class TodoListService {
         return todoListRepository.save(todoList);
     }
 
-    public void delete(UUID id) {
-        if (!todoListRepository.existsById(id)) {
-            throw new NoSuchElementException("TodoList not found: " + id);
+    public void delete(UUID userId, UUID id) {
+        if (todoListRepository.findByIdAndUser_Id(id, userId).isEmpty()) {
+            throw new NoSuchElementException("TodoList not found for user: " + id);
         }
         todoListRepository.deleteById(id);
     }
