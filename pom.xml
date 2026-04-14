@@ -29,7 +29,7 @@
 	<properties>
 		<java.version>25</java.version>
 		<mockito.version>5.17.0</mockito.version>
-		<sonar.organization>todo-app-abdullah-sanli</sonar.organization>
+		<sonar.organization>taskmaster-abdullah</sonar.organization>
 	</properties>
 	<dependencies>
 		<dependency>
