@@ -67,7 +67,7 @@ De API volgt de REST-principes waarbij bronnen hiërarchisch worden benaderd.
 
 
 ### 1. Architectuurdiagram
-Het diagram visualiseert de volledige lifecycle van de code: van **Java Source Code** op GitHub naar een automatische build en deployment via **GitHub Actions**. De applicatie draait in de cloud binnen een **Azure App Service** (Java Runtime), die via **JDBC/Hibernate** communiceert met een beveiligde **Azure Database for PostgreSQL**. De gebruiker communiceert met de API via versleutelde HTTPS/REST-verbindingen.
+Het diagram visualiseert de volledige lifecycle van de code: van **Java Source Code** op GitHub naar een automatische build en deployment via **GitHub Actions**. De backend draait in de cloud binnen een **Azure App Service** (Java Runtime), die via **JDBC/Hibernate** communiceert met een beveiligde **Azure Database for PostgreSQL**. De Vue-frontend wordt apart gedeployed als **Azure Static Web App** en praat via HTTPS/REST met de backend. Omdat frontend en backend verschillende origins zijn, is **CORS** in de backend noodzakelijk.
 
 ### 2. API Endpoints
 De API maakt gebruik van **RESTful endpoints** met een logische, hiërarchische structuur (bijv. `/users/{id}/lists`). De endpoints ondersteunen volledige CRUD-functionaliteit.
@@ -88,3 +88,4 @@ De applicatie is gebouwd met beveiliging als uitgangspunt:
 * **Environment Variables:** Gevoelige informatie, zoals database-credentials (username/password), wordt **nooit** in de broncode opgeslagen. Deze worden veilig beheerd via Azure App Service Configuration en GitHub Secrets.
 * **Least Privilege:** De databasegebruiker heeft enkel de rechten die strikt noodzakelijk zijn voor de applicatie.
 * **Defense in Depth:** Gebruik van HTTPS voor data-in-transit en firewalls binnen Azure om de database af te schermen van het publieke internet.
+* **CORS & Origins:** Alleen expliciet toegestane frontend-origins, zoals de Azure Static Web App en lokale Vue-development hosts, mogen de API aanroepen.

@@ -43,6 +43,32 @@ Alle korte code snippets staan in de map [voorbeelden](./voorbeelden/):
 
 Zie ook het volledige installatieplan: [Installatie stappenplan](./Installatie_Stappenplan.md)
 
+## Deployment-overzicht
+
+Voor Azure gebruiken we de `main_postgres`-branch. De `main`-branch blijft bedoeld voor lokale ontwikkeling met H2; voor Azure hoef je dus geen extra `application.properties`-bestand aan te maken.
+
+### Backend op Azure App Service
+
+De Spring Boot backend leest de volgende instellingen uit environment variables (met lokale defaults):
+
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `APP_JWT_SECRET`
+- `APP_JWT_EXPIRATION_MS` (optioneel)
+- `APP_CORS_ALLOWED_ORIGINS`
+- `PORT` (door Azure App Service gezet)
+
+### Vue frontend op Azure Static Web App
+
+De Vue-app draait als aparte origin. Voeg daarom in Azure Static Web Apps de productie-frontend toe als toegestane CORS-origin op de backend. Voor lokaal is `http://localhost:5173` al toegestaan.
+
+Tip voor de Vue-repo:
+
+- stel een API base URL in, bijvoorbeeld via `VITE_API_BASE_URL`
+- wijs die naar de backend-URL van Azure App Service
+- zorg dat requests een `Authorization: Bearer ...` header kunnen meesturen
+
 ## Eindpresentatie
 
 Aan het einde van elke dag presenteer je:

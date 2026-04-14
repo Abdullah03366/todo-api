@@ -1,5 +1,7 @@
 package example.demo.todo.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
@@ -17,13 +19,22 @@ public class JwtService {
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
     private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
+    private static final String DEFAULT_SECRET = "demo.todo.local.secret.demo.todo.local.secret";
+    private static final long DEFAULT_EXPIRATION_MS = TimeUnit.HOURS.toMillis(1);
 
-    private final byte[] secretBytes;
-    private final long expirationMs;
+    private byte[] secretBytes = DEFAULT_SECRET.getBytes(StandardCharsets.UTF_8);
+    private long expirationMs = DEFAULT_EXPIRATION_MS;
 
     public JwtService() {
-        this.secretBytes = "demo.todo.local.secret.demo.todo.local.secret".getBytes(StandardCharsets.UTF_8);
-        this.expirationMs = TimeUnit.HOURS.toMillis(1);
+    }
+
+    @Autowired
+    public void configure(
+            @Value("${app.jwt.secret:demo.todo.local.secret.demo.todo.local.secret}") String secret,
+            @Value("${app.jwt.expiration-ms:3600000}") long expirationMs
+    ) {
+        this.secretBytes = secret.getBytes(StandardCharsets.UTF_8);
+        this.expirationMs = expirationMs;
     }
 
     public JwtService(String secret, long expirationMs) {
