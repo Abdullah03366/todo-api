@@ -25,7 +25,7 @@ Zie ook het volledige installatieplan: [Installatie stappenplan](./Installatie_S
 
 ## Deployment-overzicht
 
-Voor Azure gebruiken we de `main_postgres`-branch. De `main`-branch blijft bedoeld voor lokale ontwikkeling met H2; voor Azure hoef je dus geen extra `application.properties`-bestand aan te maken.
+Voor Azure gebruiken we de `main_postgres`-branch (dient als `main`). De `main_dev`-branch blijft bedoeld voor lokale ontwikkeling met H2; voor Azure hoef je dus geen extra `application.properties`-bestand aan te maken.
 
 ### Backend op Azure App Service
 

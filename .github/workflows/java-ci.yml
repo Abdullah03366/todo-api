@@ -2,9 +2,9 @@ name: Java CI + CodeQL
 
 on:
   push:
-    branches: [ "main", "main_dev"]
+    branches: [ "main_postgres", "main_dev"]
   pull_request:
-    branches: [ "main", "main_dev"]
+    branches: [ "main_postgres", "main_dev"]
 
 permissions:
     contents: read
