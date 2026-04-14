@@ -2,10 +2,8 @@ name: SonarQube
 
 on:
   push:
-    branches: [ "main", "main_dev"]
-  pull_request:
-    branches: [ "main", "main_dev"]
-
+    branches:
+      - "main"
 
 jobs:
   build:
