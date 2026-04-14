@@ -51,5 +51,5 @@ De Vue frontend leest uit environment variables, de backend-URL via: `VITE_API_B
 - CORS is geconfigureerd op de backend om verzoeken van de frontend toe te staan, zowel lokaal als in Azure.
 - De backend maakt verbinding met een Azure Database for PostgreSQL, waarvoor de connection string is ingesteld via environment variables in Azure App Service. De database is beveiligd en alleen toegankelijk vanuit de App Service.
 - De backend en frontend communiceren via HTTPS, waarbij de backend API-endpoints worden aangeroepen vanuit de frontend met de juiste URL (in Azure).
-- De backend is beveiligd met JWT-authenticatie, waarbij tokens worden gegenereerd en gevalideerd op de backend. De frontend slaat het JWT-token op in localStorage en voegt het toe aan de Authorization-header bij API-aanroepen naar de backend.
+- De backend is beveiligd met JWT-authenticatie, waarbij tokens worden gegenereerd en gevalideerd op de backend. De frontend slaat het JWT-token op voor 1 uur in de sessionStorage en voegt het toe aan de Authorization-header bij API-aanroepen naar de backend.
 - De backend en frontend zijn beide toegankelijk via het internet, maar de database is alleen toegankelijk vanuit de backend, waardoor een extra beveiligingslaag wordt toegevoegd.
